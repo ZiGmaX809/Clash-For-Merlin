@@ -51,7 +51,9 @@
 
    如果配置无误，可以看到Clash开始跑并输出log。
 
-## config.yaml配置
+## 透明代理
+
+### 透明代理下的config.yaml配置
 
 Merlin直接跑Clash相对于OpenClash和KoolClash无法自动更新托管配置。
 
@@ -65,21 +67,198 @@ Merlin直接跑Clash相对于OpenClash和KoolClash无法自动更新托管配置
 > https://gitlab.com/api/v4/projects/【Project ID】/repository/files/【config.yaml】/raw?ref=master&private_token=【私有Token】
 > ```
 
-需要说明的是：
+Project ID：可在以下位置找到。
 
-Project ID：是你项目的ID，可在下图位置找到
+<h1 align="center">
+  <img src="https://raw.githubusercontent.com/ZiGmaX809/Clash-For-Merlin/master/Project ID.png" alt="Project ID" width="200">
+</h1>
+config.yaml：无需变更名称，直接在仓库根目录创建，否则下载下来还需要重命名；
+私有Token：需要自己申请Token。
 
+### 配置文件编写
 
-## 透明代理
+```yaml
+---
+port: 7890  #默认http代理端口
+socks-port: 7891  #默认socks代理端口
+redir-port: 7892  #默认redir端口
+allow-lan: true
+mode: Rule
+log-level: info
+external-controller: 0.0.0.0:9090  #控制台端口
+experimental:
+  interface-name: eth0  #（尝试）TUN模式下，流量出口，路由器为WAN口
+  ignore-resolve-fail: true  #忽略DNS解析失败
+  
+dns:
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:53  #监听路由器53端口
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.168.0.1/16
+  nameserver:
+    - 114.114.114.114
+    - 223.5.5.5
+    - 8.8.8.8
+    - 1.1.1.1
+    
+tun:
+  enable: true  #（尝试）TUN模式
+  
+proxy-provider: #使用proxy-provider对不同的规则进行订阅，以Dler为例
+  Dler:
+    type: http
+    path: ./Dler.yaml
+    url: https://dler.cloud/subscribe/token?protocols=ss&list=clash&lv=3&noarea=cn
+    interval: 3600
+    health-check:
+        enable: true
+        url: http://www.gstatic.com/generate_204
+        interval: 300
+   
+  ...
+        
+Proxy Group:
+  - name: Auto - UrlTest
+    type: url-test
+    use:
+      - Dler
+    url: http://www.gstatic.com/generate_204
+    interval: "1800"
 
-Clash的透明代理需要搭配iptables使用。
+  - name: Proxy
+    type: select
+    use:
+      - Dler
+    proxies:
+      - Auto - UrlTest
+      - DIRECT
+	
+	...
+
+Rule:
+	...
+```
+
+### 重启Clash脚本
+
+创建重启Clash脚本并赋予执行权限；
+
+```shell
+touch /jffs/clash/restart.sh
+chmod +x /jffs/clash/restart.sh
+vi /jffs/clash/restart.sh
+```
+
+打开后输入以下内容；
+
+```shell
+if $(pidof clash) > /dev/null; then
+	kill $(pidof clash)
+fi
+start-stop-daemon -S -b -x /jffs/clash/clash -m -p /tmp/clash.pid -- -d /jffs/clash/
+```
+
+后续直接运行`/jffs/clash/restart.sh`即可重启Clash。
+
+### 更新config.yaml脚本
+
+创建更新config.yaml脚本并赋予执行权限；
+
+```shell
+touch /jffs/clash/update.sh
+chmod +x /jffs/clash/update.sh
+vi /jffs/clash/update.sh
+```
+
+打开后输入以下内容；
+
+```shell
+wget -O /jffs/clash/config.yaml 'https://gitlab.com/api/v4/projects/【Project ID】/repository/files/【config.yaml】/raw?ref=master&private_token=【私有Token】'
+/bin/sh /jffs/clash/restart.sh
+```
+
+即为你Gitlab托管地址。
+
+后续直接运行`/jffs/clash/update.sh`即可更新config.yaml配置文件。
+
+### iptables规则
+
+新建sh脚本以自动添加iptables规则，并赋予执行权限，并添加规则；
+
+```shell
+touch /jffs/clash/clash-iptable.sh
+chmod +x /jffs/clash/clash-iptable.sh
+vi /jffs/clash/clash-iptable.sh
+```
+
+添加
+
+```shell
+#排除ssh端口
+iptables -t nat -A PREROUTING -p tcp --dport 22 -j ACCEPT
+#在nat表中首行添加排除来源为192.168.2.65规则（尚在尝试）
+iptables -t nat -I PREROUTING -s 192.168.2.65/32 -j RETURN
+#新建名为CLASH的CHAIN
+iptables -t nat -N CLASH
+#在CLASH的CHAIN中末行添加排除去向为192.168.0.0/16网段规则
+iptables -t nat -A CLASH -d 192.168.0.0/16 -j RETURN 
+#在CLASH的CHAIN中末行添加转发所有tcp数据至7892端口
+iptables -t nat -A CLASH -p tcp -j REDIRECT --to-ports 7892
+#在nat表中添加所有流量转向CLASH的CHAIN
+iptables -t nat -A PREROUTING -p tcp -j CLASH
+```
+
+其中`iptables -t nat -I CLASH -s 192.168.2.65/32 -j RETURN`是跳过`192.168.2.65`IP，因为这是Switch的地址，最近在玩动物之森，需要用到UU加速器。（该功能尚在尝试阶段）
+
+#### dnsmasq更改端口
+
+因为前面配置文件中Clash监听了DNS服务器的53端口，但是53端口已经被dnsmasq占用，所以要将dnsmasq端口更改或直接关闭。
+
+```shell
+touch /jffs/configs/dnsmasq.conf.add
+vi /jffs/configs/dnsmasq.conf.add
+```
+
+将以下内容添加进去；
+
+```shell
+port=0
+```
+
+直接关闭dnsmasq的DNS解析功能，留存DHCP功能；
+
+```shell
+service restart_dnsmasq
+```
+
+重启dnsmasq服务。
+
+### 其他
+
+需要在路由器—内部网络中将DNS地址设置为路由器地址，至此连接至改路由器的所有设备都将会科学上网。
 
 ## 开机启动
 
-## 手动更新config.yaml脚本
+不知道是AC86U的原因还是命令行位置不对，如果使用`start-stop-daemon`是无法在路由器重启时启动Clash。
 
-## 重启脚本
+所以我是使用`&`来进行后台运行；
+
+```shell
+vi /jffs/scripts/wan-start
+```
+
+在最后添加
+
+```shell
+/bin/sh /jffs/clash/clash-iptable.sh
+/jffs/clash/clash -d /jffs/clash/ &
+```
 
 ## 与UU加速器共存（待验证）
 
+* 需要将switch中DNS更改为非路由器地址，设备可直连。
 
+尝试：
+
+​	~~联系Merlin开发者，以更新iptable来使用-m owner -pid-owner直接排除UU加速器的端口，但是被以稳定性无法保障为由驳回。~~
