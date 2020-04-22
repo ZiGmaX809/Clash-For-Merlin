@@ -69,10 +69,10 @@ Merlin直接跑Clash相对于OpenClash和KoolClash无法自动更新托管配置
 
 Project ID：可在以下位置找到。
 
-<h1 align="center">
-  <img src="https://raw.githubusercontent.com/ZiGmaX809/Clash-For-Merlin/master/Project ID.png" alt="Project ID" width="200">
-</h1>
+<h1 align="left"><img src="https://raw.githubusercontent.com/ZiGmaX809/Clash-For-Merlin/master/Project ID.png" alt="Project ID" width="200"></h1>
+
 config.yaml：无需变更名称，直接在仓库根目录创建，否则下载下来还需要重命名；
+
 私有Token：需要自己申请Token。
 
 ### 配置文件编写
@@ -209,7 +209,7 @@ iptables -t nat -A CLASH -p tcp -j REDIRECT --to-ports 7892
 iptables -t nat -A PREROUTING -p tcp -j CLASH
 ```
 
-其中`iptables -t nat -I CLASH -s 192.168.2.65/32 -j RETURN`是跳过`192.168.2.65`IP，因为这是Switch的地址，最近在玩动物之森，需要用到UU加速器。（该功能尚在尝试阶段）
+其中`iptables -t nat -I PREROUTING -s 192.168.2.65/32 -j RETURN`是跳过`192.168.2.65`IP，因为这是Switch的地址，最近在玩动物之森，需要用到UU加速器。（该功能尚在尝试阶段）
 
 #### dnsmasq更改端口
 
@@ -220,13 +220,13 @@ touch /jffs/configs/dnsmasq.conf.add
 vi /jffs/configs/dnsmasq.conf.add
 ```
 
-将以下内容添加进去；
+将以下内容添加进去，0为关闭DNS功能，当然也可以更改为5353等端口；
 
 ```shell
 port=0
 ```
 
-直接关闭dnsmasq的DNS解析功能，留存DHCP功能；
+我这边直接关闭dnsmasq的DNS解析功能，仅留存DHCP功能；
 
 ```shell
 service restart_dnsmasq
