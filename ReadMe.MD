@@ -5,6 +5,8 @@
 > 固件：KoolShare改版Merlin 384.16
 >
 > Clash版本：0.19
+>
+> 1.0版 可以和UU加速器共存，并且Switch裸连可以达到B（根据当前网络决定） 
 
 ## 前言
 
@@ -210,6 +212,77 @@ iptables -t nat -A PREROUTING -p tcp -j CLASH
 ```
 
 其中`iptables -t nat -I PREROUTING -s 192.168.2.65/32 -j RETURN`是跳过`192.168.2.65`IP，因为这是Switch的地址，最近在玩动物之森，需要用到UU加速器。（该功能尚在尝试阶段）
+
+### 更新iptable配置
+
+后续发现一个大神的iptable配置[项目地址](https://github.com/Outofpit/clash-merlin)，可以代理UDP；
+稍作修改后可以和UU加速器共存，并且不再是F而是未开代理的B。
+
+* 需要注意的是，需将Switch的网络设置如下：
+* ip：192.168.2.100和192.168.2.101；
+* 子网掩码：255.255.255.0；
+* 网关：192.168.2.1；
+* DNS：223.5.5.5；114.114.114.114；
+* 或者自定义设置后，修改下面配置中的ip地址，将其排除代理。
+
+```shell
+#!/bin/sh
+proxy_port=7892
+lan_ip=192.168.2.1
+ssh_port=22
+
+# ports redirect for clash except port 22 for ssh connection
+iptables -t nat -A PREROUTING -p tcp --dport $ssh_port -j ACCEPT
+
+# redirect for clash except Nintendo Switch
+iptables -t nat -I PREROUTING -s 192.168.2.100/32 -j RETURN
+iptables -t nat -I PREROUTING -s 192.168.2.101/32 -j RETURN
+
+#new
+iptables -t nat -N CLASH
+iptables -t nat -A CLASH -d 192.168.0.0/16 -j RETURN
+iptables -t nat -A CLASH -d 10.0.0.0/8 -j RETURN
+iptables -t nat -A CLASH -d 127.0.0.0/8 -j RETURN
+iptables -t nat -A CLASH -d 169.254.0.0/16 -j RETURN
+iptables -t nat -A CLASH -d 172.16.0.0/12 -j RETURN
+iptables -t nat -A CLASH -d 224.0.0.0/4 -j RETURN
+iptables -t nat -A CLASH -d 240.0.0.0/4 -j RETURN
+
+#redirect to Clash
+iptables -t nat -A CLASH -p tcp -j REDIRECT --to-ports $proxy_port
+iptables -t nat -A PREROUTING -j CLASH
+# fake-ip rules
+iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports $proxy_port
+
+#DNS
+#iptables -t nat -A PREROUTING -p udp -m udp --dport 53 -j DNAT --to-destination $lan_ip:55
+
+# udp
+modprobe xt_TPROXY
+proxy_fwmark="0x162"
+proxy_table="0x162"
+ip rule add fwmark $proxy_fwmark table $proxy_table
+ip route add local default dev lo table $proxy_table
+iptables -t mangle -N CLASH
+iptables -t mangle -A CLASH -d 192.168.0.0/16 -j RETURN
+iptables -t mangle -A CLASH -d 10.0.0.0/8 -j RETURN
+iptables -t mangle -A CLASH -d 127.0.0.0/8 -j RETURN
+iptables -t mangle -A CLASH -d 169.254.0.0/16 -j RETURN
+iptables -t mangle -A CLASH -d 172.16.0.0/12 -j RETURN
+iptables -t mangle -A CLASH -d 224.0.0.0/4 -j RETURN
+iptables -t mangle -A CLASH -d 240.0.0.0/4 -j RETURN
+
+# redirect to Clash
+iptables -t mangle -A CLASH -p udp -j TPROXY --on-port $proxy_port --tproxy-mark $proxy_table
+iptables -t mangle -A PREROUTING -p udp -j CLASH
+
+# redirect for clash except Nintendo Switch
+iptables -t mangle -I PREROUTING -s 192.168.2.100/32 -j RETURN
+iptables -t mangle -I PREROUTING -s 192.168.2.101/32 -j RETURN
+
+# fake-ip rules
+iptables -t mangle -A OUTPUT -p udp -d 198.18.0.0/16 -j MARK --set-mark $proxy_fwmark
+```
 
 #### dnsmasq更改端口
 
