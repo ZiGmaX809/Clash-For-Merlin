@@ -133,7 +133,7 @@ Proxy Group:
     proxies:
       - Auto - UrlTest
       - DIRECT
-	
+
 	...
 
 Rule:
