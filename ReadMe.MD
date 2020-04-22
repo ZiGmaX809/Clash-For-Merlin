@@ -328,10 +328,12 @@ vi /jffs/scripts/wan-start
 /jffs/clash/clash -d /jffs/clash/ &
 ```
 
-## 与UU加速器共存（待验证）
+## 与UU加速器共存
 
 * 需要将switch中DNS更改为非路由器地址，设备可直连。
 
 尝试：
 
 ​	~~联系Merlin开发者，以更新iptable来使用-m owner -pid-owner直接排除UU加速器的端口，但是被以稳定性无法保障为由驳回。~~
+
+通过iptable配置，使用TPROXY已解决。
