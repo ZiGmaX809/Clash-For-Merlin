@@ -330,7 +330,7 @@ iptables -t nat -A PREROUTING -p udp -m udp --dport 53 -j DNAT --to-destination 
 iptables -t nat -A PREROUTING -p udp -j RETURN
 ```
 
-#### dnsmasq更改端口
+#### dnsmasq更改端口（Clash的DNS服务监听非53端口则无需修改）
 
 因为前面配置文件中Clash监听了DNS服务器的53端口，但是53端口已经被dnsmasq占用，所以要将dnsmasq端口更改或直接关闭。
 
@@ -374,12 +374,13 @@ vi /jffs/scripts/wan-start
 /jffs/clash/clash -d /jffs/clash/ &
 ```
 
-## 与UU加速器共存
+## 尚存问题
+ * #### 与UU加速器共存
+   *尝试*
+   ~~联系Merlin开发者，以更新iptable来使用-m owner -pid-owner直接排除UU加速器的端口，但是被以稳定性无法保障为由驳回。~~
 
-* 需要将switch中DNS更改为非路由器地址，设备可直连。
-
-尝试：
-
-​	~~联系Merlin开发者，以更新iptable来使用-m owner -pid-owner直接排除UU加速器的端口，但是被以稳定性无法保障为由驳回。~~
-
-通过iptable配置，使用TPROXY已解决。
+ * #### 网络环境中游戏问题
+   fake-ip模式下，由于所有流量都会经过Clash，所以无法合理区分诸如王者荣耀等游戏的udp数据，从而会导致游戏丢包以及掉线；
+   暂行解决思路：
+   	1、在iptable中排除除了请求DNS的udp数据；
+	2、使用redir-host；
