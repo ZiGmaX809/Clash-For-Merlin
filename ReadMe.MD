@@ -316,18 +316,15 @@ iptables -t nat -A CLASH -d 172.16.0.0/12 -j RETURN
 iptables -t nat -A CLASH -d 224.0.0.0/4 -j RETURN
 iptables -t nat -A CLASH -d 240.0.0.0/4 -j RETURN
 
-# redirect to Clash
+# redirect to Clash and except udp
 iptables -t nat -A CLASH -p tcp -j REDIRECT --to-ports $proxy_port
-iptables -t nat -A PREROUTING -j CLASH
+iptables -t nat -A PREROUTING ! -p udp -j CLASH
 
 # fake-ip rules
 #iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports $proxy_port
 
 # DNS
-iptables -t nat -A PREROUTING -p udp -m udp --dport 53 -j DNAT --to-destination $lan_ip:55
-
-# except udp
-iptables -t nat -A PREROUTING -p udp -j RETURN
+iptables -t nat -I PREROUTING -p udp -m udp --dport 53 -j DNAT --to-destination $lan_ip:55
 ```
 
 #### dnsmasq更改端口（Clash的DNS服务监听非53端口则无需修改）
