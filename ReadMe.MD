@@ -95,15 +95,19 @@ experimental:
 dns:
   enable: true
   ipv6: false
-  listen: 0.0.0.0:53  #监听路由器53端口
+  listen: 0.0.0.0:55  #监听路由器55端口
   enhanced-mode: fake-ip
-  fake-ip-range: 198.168.0.1/16
+  fake-ip-range: 198.18.0.1/16
+  #enhanced-mode: redir-host
   nameserver:
     - 114.114.114.114
     - 223.5.5.5
+    - tls://dns.rubyfish.cn:853
+  fallback:
+    - 114.114.114.114
+    - tls://dns.rubyfish.cn:853
     - 8.8.8.8
-    - 1.1.1.1
-    
+
 tun:
   enable: true  #（尝试）TUN模式
   
