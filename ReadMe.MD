@@ -252,7 +252,7 @@ iptables -t nat -A CLASH -d 240.0.0.0/4 -j RETURN
 iptables -t nat -A CLASH -p tcp -j REDIRECT --to-ports $proxy_port
 iptables -t nat -A PREROUTING -j CLASH
 # fake-ip rules
-iptables -t nat -A OUTPUT -p tcp -d 198.168.0.0/16 -j REDIRECT --to-ports $proxy_port
+iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports $proxy_port
 
 #DNS
 #iptables -t nat -A PREROUTING -p udp -m udp --dport 53 -j DNAT --to-destination $lan_ip:55
@@ -281,7 +281,7 @@ iptables -t mangle -I PREROUTING -s 192.168.2.100/32 -j RETURN
 iptables -t mangle -I PREROUTING -s 192.168.2.101/32 -j RETURN
 
 # fake-ip rules
-iptables -t mangle -A OUTPUT -p udp -d 198.168.0.0/16 -j MARK --set-mark $proxy_fwmark
+iptables -t mangle -A OUTPUT -p udp -d 198.18.0.0/16 -j MARK --set-mark $proxy_fwmark
 ```
 
 > 待验证
