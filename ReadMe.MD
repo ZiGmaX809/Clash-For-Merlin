@@ -1,4 +1,4 @@
-# Clash For Merlin记录
+# Clash For Merlin
 
 > 设备：华硕AC-86U
 >
