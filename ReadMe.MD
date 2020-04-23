@@ -217,7 +217,7 @@ iptables -t nat -A PREROUTING -p tcp -j CLASH
 
 其中`iptables -t nat -I PREROUTING -s 192.168.2.65/32 -j RETURN`是跳过`192.168.2.65`IP，因为这是Switch的地址，最近在玩动物之森，需要用到UU加速器。（该功能尚在尝试阶段）
 
-### 更新iptable配置
+### 代理udp数据
 
 后续发现一个大神的iptable配置[项目地址](https://github.com/Outofpit/clash-merlin)，可以代理UDP；
 稍作修改后可以和UU加速器共存，并且不再是F而是未开代理的B。
@@ -278,7 +278,7 @@ iptables -t mangle -A CLASH -d 240.0.0.0/4 -j RETURN
 
 # redirect to Clash
 iptables -t mangle -A CLASH -p udp -j TPROXY --on-port $proxy_port --tproxy-mark $proxy_table
-iptables -t mangle -A PREROUTING -p udp ! --dport 53 -j CLASH
+iptables -t mangle -A PREROUTING -p udp -j CLASH
 
 # redirect for clash except Nintendo Switch
 iptables -t mangle -I PREROUTING -s 192.168.2.100/32 -j RETURN
