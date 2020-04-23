@@ -7,6 +7,7 @@
 > Clash版本：0.19
 >
 > 1.0版 可以和UU加速器共存，并且Switch裸连可以达到B（根据当前网络决定） 
+>
 > 2.0版 比较满意的版本，可以与UU加速器共存，Switch裸连无异常，王者荣耀等游戏的延迟保持在30ms以下；
 
 ## 前言
@@ -371,17 +372,13 @@ vi /jffs/scripts/wan-start
    ~~尝试联系Merlin开发者，以更新iptable来使用-m owner -pid-owner直接排除UU加速器的端口，但是被以稳定性无法保障为由驳回。~~
   
   最终解决：
-  
-    1、将Switch固定ip，并在iptable表中排除；
-	
-    2、对于UU加速器本体，利用TPROXY打上标签后走经过CLASH；
+    1. 将Switch固定ip，并在iptable表中排除；
+    2. 对于UU加速器本体，利用TPROXY打上标签后走经过CLASH；
 
  * #### 网络环境中游戏问题及无需代理的设备
    ~~归根结底还是udp数据类型的问题，fake-ip模式下，由于所有流量都会经过Clash，所以无法合理区分诸如王者荣耀等游戏以及微信视频聊天的udp数据，从而会导致游戏丢包以及掉线；~~
    
    解决思路：
-   
     1、在iptable中仅转发对fake-ip请求DNS的udp数据，对tcp以及外部udp的数据进行RETURN处理；
-	
     ~~2、使用redir-host；~~
 
