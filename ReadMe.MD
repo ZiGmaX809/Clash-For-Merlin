@@ -288,10 +288,11 @@ iptables -t mangle -I PREROUTING -s 192.168.2.101/32 -j RETURN
 iptables -t mangle -A OUTPUT -p udp -d 198.18.0.0/16 -j MARK --set-mark $proxy_fwmark
 ```
 
-> 待验证
-> 在不需要代理的设备中将DNS地址设置为非路由器地址
+### 绕过Clash处理udp数据
 
-尝试绕过Clash处理除DNS请求外的udp数据
+> 仅让Clash处理DNS地址为路由器地址（192.168.2.1）的客户端请求；
+> 在不需要代理的设备中将DNS地址设置为非路由器地址即可绕过代理；
+> 甚至该模式下无需固定Switch的ip，可以稳定到达B，以及王者荣耀在延迟测试的情况下保持在21~24ms。
 
 ```shell
 #!/bin/sh
@@ -302,9 +303,9 @@ ssh_port=22
 # ports redirect for clash except port 22 for ssh connection
 iptables -t nat -A PREROUTING -p tcp --dport $ssh_port -j ACCEPT
 
-# redirect for clash except Nintendo Switch
-iptables -t mangle -I PREROUTING -s 192.168.2.100/32 -j RETURN
-iptables -t mangle -I PREROUTING -s 192.168.2.101/32 -j RETURN
+# redirect for clash except Nintendo Switch and udp
+iptables -t mangle -I PREROUTING -p udp -j RETURN
+iptables -t nat -I PREROUTING -p udp -j RETURN
 
 # new
 iptables -t nat -N CLASH
@@ -318,13 +319,10 @@ iptables -t nat -A CLASH -d 240.0.0.0/4 -j RETURN
 
 # redirect to Clash and except udp
 iptables -t nat -A CLASH -p tcp -j REDIRECT --to-ports $proxy_port
-iptables -t nat -A PREROUTING ! -p udp -j CLASH
-
-# fake-ip rules
-#iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports $proxy_port
+iptables -t nat -A PREROUTING -j CLASH
 
 # DNS
-iptables -t nat -I PREROUTING -p udp -m udp --dport 53 -j DNAT --to-destination $lan_ip:55
+iptables -t nat -I PREROUTING -p udp -m udp -d $lan_ip --dport 53 -j DNAT --to-destination $lan_ip:55
 ```
 
 #### dnsmasq更改端口（Clash的DNS服务监听非53端口则无需修改）
