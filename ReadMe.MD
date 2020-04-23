@@ -317,7 +317,7 @@ iptables -t nat -A CLASH -p tcp -j REDIRECT --to-ports $proxy_port
 iptables -t nat -A PREROUTING -j CLASH
 
 # fake-ip rules
-iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports $proxy_port
+#iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports $proxy_port
 
 # DNS
 iptables -t nat -A PREROUTING -p udp -m udp --dport 53 -j DNAT --to-destination $lan_ip:55
