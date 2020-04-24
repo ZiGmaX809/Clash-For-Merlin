@@ -368,23 +368,19 @@ vi /jffs/scripts/wan-start
 ```
 
 ## 尚存问题
- * #### 与UU加速器共存
+ * #### 与UU加速器共存（已解决）
  
-   ~~之前尝试联系Merlin开发者以更新iptable版本来使用-m owner -pid-owner直接排除UU加速器的端口，但是被以稳定性无法保障为由驳回。~~
+   之前尝试联系Merlin开发者以更新iptable版本来使用-m owner -pid-owner直接排除UU加速器的端口，但是被以稳定性无法保障为由驳回。
    
-   最终解决：
-   
-    1. 将Switch固定ip，并在iptable表中排除；
-    
-    2. 对于UU加速器本体，利用TPROXY打上标签后走经CLASH；
+   解决思路：将Switch固定ip，并在iptable表中排除。
 
- * #### 网络环境中游戏问题及无需代理的设备
+ * #### 网络环境中游戏问题及无需代理的设备（已解决）
  
-   ~~归根结底还是udp数据类型的问题，fake-ip模式下，由于所有流量都会经过Clash，所以无法合理区分诸如王者荣耀等游戏以及微信视频聊天的udp数据，从而会导致游戏丢包以及掉线；~~
+   归根结底还是udp数据类型的问题，fake-ip模式下，由于原有iptable规则所有流量都会经过Clash，所以无法合理区分诸如王者荣耀等游戏以及微信视频聊天的udp数据，从而会导致游戏丢包以及掉线。
    
    解决思路：
    
-    1、在iptable中仅转发对fake-ip请求DNS的udp数据，对tcp以及外部udp的数据进行RETURN处理；
+   1. 在iptable中仅转发对fake-ip请求DNS的udp数据，对tcp以及外部udp的数据进行RETURN处理；
     
-    ~~2、使用redir-host；~~
+   2. 使用redir-host；
 
