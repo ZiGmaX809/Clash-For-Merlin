@@ -162,7 +162,7 @@ vi /jffs/clash/restart.sh
 
 ```shell
 if $(pidof clash) > /dev/null; then
-	kill $(pidof clash)
+  kill -9 $(pidof clash)
 fi
 start-stop-daemon -S -b -x /jffs/clash/clash -m -p /tmp/clash.pid -- -d /jffs/clash/
 ```
@@ -192,6 +192,8 @@ wget -O /jffs/clash/config.yaml 'https://gitlab.com/api/v4/projects/【Project I
 
 ### iptables规则
 
+#### 常规规则
+
 新建sh脚本以自动添加iptables规则，并赋予执行权限，并添加规则；
 
 ```shell
@@ -219,7 +221,7 @@ iptables -t nat -A PREROUTING -p tcp -j CLASH
 
 其中`iptables -t nat -I PREROUTING -s 192.168.2.65/32 -j RETURN`是跳过`192.168.2.65`IP，因为这是Switch的地址，最近在玩动物之森，需要用到UU加速器。（该功能尚在尝试阶段）
 
-### 代理udp数据
+#### 代理udp数据
 
 后续发现一个大神的iptable配置[项目地址](https://github.com/Outofpit/clash-merlin)，可以代理UDP；
 稍作修改后可以和UU加速器共存，并且不再是F而是未开代理的B。
@@ -290,7 +292,7 @@ iptables -t mangle -I PREROUTING -s 192.168.2.101/32 -j RETURN
 iptables -t mangle -A OUTPUT -p udp -d 198.18.0.0/16 -j MARK --set-mark $proxy_fwmark
 ```
 
-### 绕过Clash处理udp数据
+#### 绕过Clash处理udp数据
 
 > 仅让Clash处理DNS地址为路由器地址（192.168.2.1）的客户端请求；
 > 在不需要代理的设备中将DNS地址设置为非路由器地址即可绕过代理；
