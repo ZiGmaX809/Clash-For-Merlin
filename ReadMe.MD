@@ -325,9 +325,9 @@ iptables -t nat -A PREROUTING ! -p udp -j CLASH
 iptables -t nat -I PREROUTING -p udp -m udp -d $lan_ip --dport 53 -j DNAT --to-destination $lan_ip:55
 ```
 
-#### dnsmasq更改端口（Clash的DNS服务监听非53端口则无需修改）
+### 更改dnsmasq端口（Clash的DNS服务监听非53端口则无需修改）
 
-因为前面配置文件中Clash监听了DNS服务器的53端口，但是53端口已经被dnsmasq占用，所以要将dnsmasq端口更改或直接关闭。
+如果配置文件中Clash监听了DNS服务器的53端口，而53端口已经被dnsmasq占用，所以要将dnsmasq端口更改或直接关闭。
 
 ```shell
 touch /jffs/configs/dnsmasq.conf.add
