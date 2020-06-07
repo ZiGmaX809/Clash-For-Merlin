@@ -161,9 +161,18 @@ vi /jffs/clash/restart.sh
 打开后输入以下内容；
 
 ```shell
-if $(pidof clash) > /dev/null; then
-  kill -9 $(pidof clash)
+#!/bin/sh
+pid=`pidof clash`
+value=`cat /tmp/clash.pid`
+
+if [ -n $pid ];then
+	if [ -n $value ];then
+		start-stop-daemon -K -n clash
+	else
+  		kill $pid
+  	fi
 fi
+
 start-stop-daemon -S -b -x /jffs/clash/clash -m -p /tmp/clash.pid -- -d /jffs/clash/
 ```
 
