@@ -364,10 +364,10 @@ service restart_dnsmasq
 
 不知道是AC86U的原因还是命令行位置不对，如果使用`start-stop-daemon`是无法在路由器重启时启动Clash。
 
-所以我是使用`&`来进行后台运行；
+所以我是使用`&`来进行后台运行，并且在安装了usb2jffs插件后只能写在nat-start或者wan-start文件中；
 
 ```shell
-vi /jffs/scripts/wan-start
+vi /jffs/scripts/nat-start
 ```
 
 在最后添加
