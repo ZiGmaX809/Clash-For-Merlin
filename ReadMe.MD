@@ -163,10 +163,9 @@ vi /jffs/clash/restart.sh
 ```shell
 #!/bin/sh
 pid=`pidof clash`
-value=`cat /tmp/clash.pid`
 
 if [ -n $pid ];then
-	if [ -n $value ];then
+	if [ -d "/tmp/clash.pid" ]; then
 		start-stop-daemon -K -n clash
 	else
   		kill $pid
