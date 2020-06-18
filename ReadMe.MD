@@ -198,7 +198,7 @@ wget -O /jffs/clash/config.yaml 'https://gitlab.com/api/v4/projects/【Project I
 
 后续直接运行`/jffs/clash/update.sh`即可更新config.yaml配置文件。
 
-### iptables规则
+### iptables规则【以下规则三选一】
 
 #### 常规规则
 
@@ -240,6 +240,9 @@ iptables -t nat -A PREROUTING -p tcp -j CLASH
 * 网关：192.168.2.1；
 * DNS：223.5.5.5；114.114.114.114；
 * 或者自定义设置后，修改下面配置中的ip地址，将其排除代理。
+
+
+如果无需跳过NS代理，可将`# redirect for clash except Nintendo Switch`部分注销
 
 ```shell
 #!/bin/sh
@@ -304,7 +307,7 @@ iptables -t mangle -A OUTPUT -p udp -d 198.18.0.0/16 -j MARK --set-mark $proxy_f
 
 > 仅让Clash处理DNS地址为路由器地址（192.168.2.1）的客户端请求；
 > 在不需要代理的设备中将DNS地址设置为非路由器地址即可绕过代理；
-> 甚至该模式下无需固定Switch的ip，可以稳定到达B，以及王者荣耀在延迟测试的情况下保持在21~24ms。
+> 该模式下无需固定Switch的ip，可以稳定到达B，以及王者荣耀在延迟测试的情况下保持在21~24ms。
 
 ```shell
 #!/bin/sh
@@ -327,10 +330,10 @@ iptables -t nat -A CLASH -d 240.0.0.0/4 -j RETURN
 
 # redirect to Clash and except udp
 iptables -t nat -A CLASH -p tcp -j REDIRECT --to-ports $proxy_port
-iptables -t nat -A PREROUTING ! -p udp -j CLASH
+iptables -t nat -A PREROUTING -p tcp -j CLASH
 
 # DNS
-iptables -t nat -I PREROUTING -p udp -m udp -d $lan_ip --dport 53 -j DNAT --to-destination $lan_ip:55
+iptables -t nat -I PREROUTING -p udp -d $lan_ip --dport 53 -j DNAT --to-destination $lan_ip:55
 ```
 
 ### 更改dnsmasq端口（Clash的DNS服务监听非53端口则无需修改）
