@@ -330,11 +330,15 @@ iptables -t nat -A CLASH -d 240.0.0.0/4 -j RETURN
 
 # redirect to Clash and except udp
 iptables -t nat -A CLASH -p tcp -j REDIRECT --to-ports $proxy_port
-iptables -t nat -A PREROUTING -p tcp -j CLASH
+iptables -t nat -A PREROUTING ! -p ucp -j CLASH
 
 # DNS
 iptables -t nat -I PREROUTING -p udp -d $lan_ip --dport 53 -j DNAT --to-destination $lan_ip:55
 ```
+
+#### 2020-06-23更新 
+> 因为在内网搭建了UnBlockNeteaseMusic，如果将`iptables -t nat -A PREROUTING ! -p udp -j CLASH`设置为`iptables -t nat -A PREROUTING -p tcp -j CLASH`将会造成错误
+> 所以在此处又改回原来版本
 
 ### 更改dnsmasq端口（Clash的DNS服务监听非53端口则无需修改）
 
