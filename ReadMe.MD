@@ -373,7 +373,7 @@ service restart_dnsmasq
 
 所以我是使用`&`来进行后台运行，并且在安装了usb2jffs插件后只能写在nat-start或者wan-start文件中；
 
-建议添加到wan-start文件，因为pppoe网络重启后会执行net-start导致存在多个clash进程。
+建议添加到wan-start文件，因为pppoe网络重启后会执行nat-start导致存在多个clash进程。
 
 ```shell
 vi /jffs/scripts/wan-start
