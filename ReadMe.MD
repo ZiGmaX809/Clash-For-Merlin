@@ -371,12 +371,10 @@ service restart_dnsmasq
 
 不知道是AC86U的原因还是命令行位置不对，如果使用`start-stop-daemon`是无法在路由器重启时启动Clash。
 
-所以我是使用`&`来进行后台运行，并且在安装了usb2jffs插件后只能写在nat-start或者wan-start文件中；
-
-建议添加到wan-start文件，因为pppoe网络重启后会执行nat-start导致存在多个clash进程。
+所以我是使用`&`来进行后台运行，建议添加到services-start文件，因为pppoe网络重启后会执行nat-start和wan-start导致存在多个clash进程。
 
 ```shell
-vi /jffs/scripts/wan-start
+vi /jffs/scripts/services-start
 ```
 
 在最后添加
